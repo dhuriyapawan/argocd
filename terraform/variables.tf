@@ -1,7 +1,7 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "eu-north-1"
+  default     = "us-east-1"
 }
 
 variable "vpc_cidr" {
@@ -13,7 +13,7 @@ variable "vpc_cidr" {
 variable "azs" {
   description = "Availability zones to use"
   type        = list(string)
-  default     = ["eu-north-1a", "eu-east-2b"]
+  default     = ["us-east-1a", "eu-east-2b"]
 }
 
 variable "public_subnet_cidrs" {
