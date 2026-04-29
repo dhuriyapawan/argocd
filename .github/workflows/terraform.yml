@@ -26,7 +26,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{var.AWS_REGION}}
+          aws-region: us-east-1
           # Expect AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY secrets
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           # Or use static keys if you set them as secrets
