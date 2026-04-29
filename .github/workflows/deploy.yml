@@ -3,7 +3,7 @@ name: Deploy to K8s via Terraform → ArgoCD → Helm
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ devops-featureA ]
   workflow_dispatch:
 
 jobs:

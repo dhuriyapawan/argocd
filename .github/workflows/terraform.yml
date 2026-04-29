@@ -3,10 +3,10 @@ name: Terraform CI
 on:
   push:
     branches:
-      - main
+      - devops-featureA
   pull_request:
     branches:
-      - main
+      - dev
 
 jobs:
   terraform:
