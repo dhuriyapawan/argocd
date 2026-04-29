@@ -1,23 +1,21 @@
+# Use an existing VPC
+
 data "aws_vpc" "main" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true
-  tags = {
-    Name = "eks-vpc"
-  }
+  id = "vpc-036750db266014be4"
 }
 
-# Internet gateway
+# Internet gateway attached to the existing VPC
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
+  vpc_id = data.aws_vpc.main.id
   tags = {
     Name = "eks-igw"
   }
 }
 
-# Public subnets
+# Public subnets (created in the existing VPC)
 resource "aws_subnet" "public" {
   count                   = length(var.azs)
-  vpc_id                  = aws_vpc.main.id
+  vpc_id                  = data.aws_vpc.main.id
   cidr_block              = element(var.public_subnet_cidrs, count.index)
   availability_zone       = element(var.azs, count.index)
   map_public_ip_on_launch = true
@@ -26,10 +24,10 @@ resource "aws_subnet" "public" {
   }
 }
 
-# Private subnets
+# Private subnets (created in the existing VPC)
 resource "aws_subnet" "private" {
   count             = length(var.azs)
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = data.aws_vpc.main.id
   cidr_block        = element(var.private_subnet_cidrs, count.index)
   availability_zone = element(var.azs, count.index)
   tags = {
@@ -39,7 +37,7 @@ resource "aws_subnet" "private" {
 
 # Public route table + association
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
+  vpc_id = data.aws_vpc.main.id
   tags = {
     Name = "eks-public-rt"
   }
