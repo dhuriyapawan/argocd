@@ -2,10 +2,14 @@
 name: Deploy to K8s via Terraform → ArgoCD → Helm
 
 on:
-  push:
-    branches: [ devops-featureA ]
-  workflow_dispatch:
-
+  
+   push:                                                                                                                                                                                                                 
+      branches: [ devops-featureA ]                                                                                                                                                                                       
+   workflow_dispatch:                                                                                                                                                                                                    
+   workflow_run:                                                                                                                                                                                                       
+    workflows: ["Terraform CI"]                                                                                                                                                                                         
+    types:                                                                                                                                                                                                            
+        - completed   
 jobs:
   infra-and-deploy:
     runs-on: ubuntu-latest
