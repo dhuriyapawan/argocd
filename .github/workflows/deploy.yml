@@ -1,0 +1,89 @@
+---
+name: Deploy to K8s via Terraform → ArgoCD → Helm
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  infra-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+
+      - name: Terraform Init
+        env:
+          TF_BACKEND_CONFIG: ${{ secrets.TF_BACKEND_CONFIG }}
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ fromJSON(secrets.TF_BACKEND_CONFIG).bucket }}" \
+            -backend-config="key=${{ fromJSON(secrets.TF_BACKEND_CONFIG).key }}" \
+            -backend-config="region=${{ fromJSON(secrets.TF_BACKEND_CONFIG).region }}"
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_cluster_name: ${{ secrets.TF_VAR_cluster_name }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          terraform fmt -check
+          terraform validate
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
+
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o /usr/local/bin/argocd \
+            https://github.com/argoproj/argo-cd/releases/download/v2.11.0/argocd-linux-amd64
+          chmod +x /usr/local/bin/argocd
+
+      - name: ArgoCD login
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        run: |
+          argocd login $ARGOCD_SERVER \
+            --auth-token $ARGOCD_AUTH_TOKEN \
+            --insecure
+
+      - name: Create / sync ArgoCD Application
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+        run: |
+          APP_NAME=my-helm-app
+          REPO_URL=https://github.com/${{ github.repository }}.git
+          CHART_PATH=ArgocdKubernets/src/<your-service>/chart   # ← adjust path
+          DEST_NS=default
+
+          if ! argocd app get $APP_NAME > /dev/null 2>&1; then
+            argocd app create $APP_NAME \
+              --repo $REPO_URL \
+              --path $CHART_PATH \
+              --dest-server https://kubernetes.default.svc \
+              --dest-namespace $DEST_NS \
+              --helm-set image.tag=${{ github.sha }} \
+              --sync-policy automated \
+              --auto-prune
+          else
+            echo "Application $APP_NAME already exists – will sync only."
+          fi
+
+          argocd app sync $APP_NAME --prune
+
+      - name: Verify rollout
+        if: always()
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          kubectl rollout status deployment/my-service -n $DEST_NS
