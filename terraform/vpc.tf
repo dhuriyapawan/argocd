@@ -24,7 +24,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project}-public-${count.index}"
+    Name                     = "${var.project}-public-${count.index}"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -36,7 +36,7 @@ resource "aws_subnet" "private" {
   availability_zone = var.azs[count.index]
 
   tags = {
-    Name = "${var.project}-private-${count.index}"
+    Name                              = "${var.project}-private-${count.index}"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -52,7 +52,7 @@ resource "aws_route_table" "public" {
 resource "aws_route" "internet_access" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.egw.id
+  gateway_id             = aws_internet_gateway.igw.id
 }
 
 resource "aws_route_table_association" "public" {
