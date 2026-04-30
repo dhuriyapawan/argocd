@@ -1,6 +1,7 @@
 import subprocess
 import json
 import sys
+import os
 from pathlib import Path
 
 # Optional: use boto3 to check AWS resources (IAM role, VPC)
@@ -82,11 +83,57 @@ def import_iam_role_if_missing(role_name):
         rc, out, err = run_cmd(f"terraform state list | grep aws_iam_role.{role_name}")
         if rc == 0:
             print(f"IAM role '{role_name}' already tracked in Terraform state.")
-            return
-        print(f"Importing IAM role '{role_name}' into Terraform state.")
-        run_cmd(f"terraform import aws_iam_role.{role_name} {role_name}", check=True)
+        else:
+            print(f"Importing IAM role '{role_name}' into Terraform state.")
+            run_cmd(f"terraform import aws_iam_role.{role_name} {role_name}", check=True)
     else:
         print(f"Skipping import – role '{role_name}' does not exist in AWS.")
+
+def import_igw_if_missing(igw_name):
+    if not boto3:
+        print("boto3 not installed – skipping IGW import.")
+        return
+    ec2 = boto3.client('ec2')
+    try:
+        igws = ec2.describe_internet_gateways()['InternetGateways']
+    except Exception as e:
+        print(f"Error describing IGWs: {e}")
+        return
+    for igw in igws:
+        tags = {t['Key']: t['Value'] for t in igw.get('Tags', [])}
+        expected_name = f"${{os.getenv('PROJECT_NAME', 'myproject')}}-igw"
+        if tags.get('Name') == expected_name:
+            igw_id = igw['InternetGatewayId']
+            rc, out, err = run_cmd(f"terraform state list | grep aws_internet_gateway.{igw_name}")
+            if rc == 0:
+                print(f"Internet Gateway '{igw_name}' already tracked in state.")
+                return
+            print(f"Importing existing Internet Gateway {igw_id} as '{igw_name}'.")
+            run_cmd(f"terraform import aws_internet_gateway.{igw_name} {igw_id}", check=True)
+            return
+    print(f"No existing Internet Gateway with name '{expected_name}' found – will be created by Terraform.")
+
+def import_subnet_if_missing(subnet_name, az, cidr):
+    if not boto3:
+        print("boto3 not installed – skipping subnet import.")
+        return
+    ec2 = boto3.client('ec2')
+    try:
+        subnets = ec2.describe_subnets()['Subnets']
+    except Exception as e:
+        print(f"Error describing subnets: {e}")
+        return
+    for sn in subnets:
+        if sn['CidrBlock'] == cidr and sn['AvailabilityZone'] == az:
+            subnet_id = sn['SubnetId']
+            rc, out, err = run_cmd(f"terraform state list | grep aws_subnet.{subnet_name}")
+            if rc == 0:
+                print(f"Subnet '{subnet_name}' already tracked in state.")
+                return
+            print(f"Importing existing subnet {subnet_id} as '{subnet_name}'.")
+            run_cmd(f"terraform import aws_subnet.{subnet_name} {subnet_id}", check=True)
+            return
+    print(f"No matching subnet (AZ={az}, CIDR={cidr}) found – will be created by Terraform.")
 
 
 def main():
@@ -96,8 +143,12 @@ def main():
     # Step 2: validate configuration
     validate()
 
-    # Step 3: make sure IAM role is tracked (example role name from iam.tf)
+    # Step 3: import existing AWS resources if they already exist
     import_iam_role_if_missing("eks_node_role")
+    import_igw_if_missing("igw")
+    # Example subnet imports – adjust environment variables as needed
+    import_subnet_if_missing("public[0]", os.getenv('TF_VAR_az0', 'us-east-1a'), os.getenv('TF_VAR_public_cidr0', '10.0.1.0/24'))
+    import_subnet_if_missing("private[0]", os.getenv('TF_VAR_az0', 'us-east-1a'), os.getenv('TF_VAR_private_cidr0', '10.0.101.0/24'))
 
     # Step 4: run plan and conditionally apply
     plan_out = plan()
