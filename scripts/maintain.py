@@ -77,17 +77,19 @@ def check_iam_role(role_name):
             raise
 
 
-def import_iam_role_if_missing(role_name):
-    if check_iam_role(role_name):
+def import_iam_role_if_missing(aws_role_name):
+    # Terraform resource name is fixed as eks_node_role (as defined in iam.tf)
+    tf_resource = "aws_iam_role.eks_node_role"
+    if check_iam_role(aws_role_name):
         # Role exists – try to import it into state if not already managed
-        rc, out, err = run_cmd(f"terraform state list | grep aws_iam_role.{role_name}")
+        rc, out, err = run_cmd(f"terraform state list | grep {tf_resource}")
         if rc == 0:
-            print(f"IAM role '{role_name}' already tracked in Terraform state.")
+            print(f"IAM role '{aws_role_name}' already tracked in Terraform state.")
         else:
-            print(f"Importing IAM role '{role_name}' into Terraform state.")
-            run_cmd(f"terraform import aws_iam_role.{role_name} {role_name}", check=True)
+            print(f"Importing IAM role '{aws_role_name}' into Terraform state.")
+            run_cmd(f"terraform import {tf_resource} {aws_role_name}", check=True)
     else:
-        print(f"Skipping import – role '{role_name}' does not exist in AWS.")
+        print(f"Skipping import – role '{aws_role_name}' does not exist in AWS.")
 
 def import_igw_if_missing(igw_name):
     if not boto3:
