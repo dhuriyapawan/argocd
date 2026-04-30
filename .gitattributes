@@ -1,0 +1,1 @@
+terraform/.terraform/**/terraform-provider-aws_*.exe filter=lfs diff=lfs merge=lfs -text
