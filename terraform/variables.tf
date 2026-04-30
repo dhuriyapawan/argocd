@@ -1,3 +1,9 @@
+variable "project" {
+  description = "Project name used for resource tagging"
+  type        = string
+  default     = "myproject"
+}
+
 variable "region" {
   description = "AWS region"
   type        = string
