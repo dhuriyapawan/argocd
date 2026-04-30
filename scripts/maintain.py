@@ -144,7 +144,7 @@ def main():
     validate()
 
     # Step 3: import existing AWS resources if they already exist
-    import_iam_role_if_missing("eks_node_role")
+    import_iam_role_if_missing("eks-node-admin-role")
     import_igw_if_missing("igw")
     # Example subnet imports – adjust environment variables as needed
     import_subnet_if_missing("public[0]", os.getenv('TF_VAR_az0', 'us-east-1a'), os.getenv('TF_VAR_public_cidr0', '10.0.1.0/24'))
