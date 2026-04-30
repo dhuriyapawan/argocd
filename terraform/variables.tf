@@ -4,6 +4,12 @@ variable "project" {
   default     = "myproject"
 }
 
+variable "vpc_id" {
+  description = "Existing VPC ID to use (if not creating a new VPC)"
+  type        = string
+  default     = ""
+}
+
 variable "region" {
   description = "AWS region"
   type        = string
