@@ -1,7 +1,7 @@
 resource "aws_eks_cluster" "cluster" {
   name     = "helm-argo-eks"
   role_arn = aws_iam_role.eks_node_role.arn
-  version  = "1.30"
+  version  = "1.34"
 
   vpc_config {
     subnet_ids = concat(
