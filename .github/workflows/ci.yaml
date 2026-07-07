@@ -9,7 +9,7 @@ on:
       - 'vote/**'
       - 'worker/**'
       - 'result/**' 
-      - 'database/**'
+      - 'database/**' 
       - 'helm/**'
       - '.github/workflows/ci.yaml'
   workflow_dispatch:
@@ -24,7 +24,7 @@ env:
   WORKER_REPO: worker
   RESULT_REPO: result
 
-jobs:
+jobs: 
   build-and-push:
     name: Build & Push to ECR
     runs-on: ubuntu-latest
