@@ -9,7 +9,7 @@ on:
       - 'vote/**'
       - 'worker/**'
       - 'result/**' 
-      - 'database/**'
+      - 'database/**' 
       - 'helm/**'
       - '.github/workflows/ci.yaml'
   workflow_dispatch:
