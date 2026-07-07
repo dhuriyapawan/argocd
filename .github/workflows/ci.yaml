@@ -2,16 +2,20 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: 
-            - main
-            - dev
-      # - devops_FeatureB     
+    branches:
+      - main
+      - dev
     paths:
-      - 'cloud-voting-platform/vote/**'
-      - 'cloud-voting-platform/worker/**'
-      - 'cloud-voting-platform/result/**'
-      - 'cloud-voting-platform/database/**'
-      - 'cloud-voting-platform/helm/**'
+      - 'vote/**'
+      - 'worker/**'
+      - 'result/**'
+      - 'database/**'
+      - 'helm/**'
+      - '.github/workflows/ci.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 env:
   AWS_REGION: us-east-1
@@ -26,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-      - name: Checkout Code
+      - name: Checkout Code 
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
@@ -46,8 +50,8 @@ jobs:
       - name: Build and Push Vote Service
         uses: docker/build-push-action@v5
         with:
-          context: ./cloud-voting-platform/vote
-          file: ./cloud-voting-platform/vote/Dockerfile
+          context: ./vote
+          file: ./vote/Dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.VOTE_REPO }}:${{ github.sha }}
@@ -58,8 +62,8 @@ jobs:
       - name: Build and Push Worker Service
         uses: docker/build-push-action@v5
         with:
-          context: ./cloud-voting-platform/worker
-          file: ./cloud-voting-platform/worker/Dockerfile
+          context: ./worker
+          file: ./worker/Dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.WORKER_REPO }}:${{ github.sha }}
@@ -70,8 +74,8 @@ jobs:
       - name: Build and Push Result Service
         uses: docker/build-push-action@v5
         with:
-          context: ./cloud-voting-platform/result
-          file: ./cloud-voting-platform/result/Dockerfile
+          context: ./result
+          file: ./result/Dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.RESULT_REPO }}:${{ github.sha }}
@@ -81,7 +85,7 @@ jobs:
 
       - name: Update Helm Image Tags
         run: |
-          cd cloud-voting-platform/helm/voting-app
+          cd helm/voting-app
           
           # Install yq tool if not present
           if ! command -v yq &> /dev/null; then
@@ -98,6 +102,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add cloud-voting-platform/helm/voting-app/values.yaml
+          git add helm/voting-app/values.yaml
           git commit -m "chore(gitops): update image tags to ${{ github.sha }} [skip ci]"
           git push
