@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-result
+  labels:
+    app: result
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      containers:
+        - name: result
+          image: "{{ .Values.image.result.repository }}:{{ .Values.image.result.tag }}"
+          imagePullPolicy: {{ .Values.image.result.pullPolicy }}
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: PG_HOST
+              value: "{{ .Release.Name }}-postgres"
+            - name: PG_PORT
+              value: "5432"
+            - name: PG_USER
+              value: "{{ .Values.postgres.user }}"
+            - name: PG_PASSWORD
+              value: "{{ .Values.postgres.password }}"
+            - name: PG_DATABASE
+              value: "{{ .Values.postgres.database }}"
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

@@ -1,0 +1,102 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - devops_featureA
+    paths:
+      - 'cloud-voting-platform/vote/**'
+      - 'cloud-voting-platform/worker/**'
+      - 'cloud-voting-platform/result/**'
+      - 'cloud-voting-platform/database/**'
+      - 'cloud-voting-platform/helm/**'
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting # Replace with your ECR Registry URI
+  VOTE_REPO: voting-app-vote
+  WORKER_REPO: voting-app-worker
+  RESULT_REPO: voting-app-result
+
+jobs:
+  build-and-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Vote Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./cloud-voting-platform/vote
+          file: ./cloud-voting-platform/vote/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.VOTE_REPO }}:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/${{ env.VOTE_REPO }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Worker Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./cloud-voting-platform/worker
+          file: ./cloud-voting-platform/worker/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.WORKER_REPO }}:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/${{ env.WORKER_REPO }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and Push Result Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./cloud-voting-platform/result
+          file: ./cloud-voting-platform/result/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.RESULT_REPO }}:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/${{ env.RESULT_REPO }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Update Helm Image Tags
+        run: |
+          cd cloud-voting-platform/helm/voting-app
+          
+          # Install yq tool if not present
+          if ! command -v yq &> /dev/null; then
+            sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+            sudo chmod +x /usr/bin/yq
+          fi
+
+          # Update the tags in values.yaml
+          yq -i ".image.vote.tag = \"${{ github.sha }}\"" values.yaml
+          yq -i ".image.worker.tag = \"${{ github.sha }}\"" values.yaml
+          yq -i ".image.result.tag = \"${{ github.sha }}\"" values.yaml
+
+      - name: Commit and Push Image Tag Updates (GitOps Sync)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add cloud-voting-platform/helm/voting-app/values.yaml
+          git commit -m "chore(gitops): update image tags to ${{ github.sha }} [skip ci]"
+          git push

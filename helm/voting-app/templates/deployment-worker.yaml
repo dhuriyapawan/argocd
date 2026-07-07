@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    app: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.image.worker.repository }}:{{ .Values.image.worker.tag }}"
+          imagePullPolicy: {{ .Values.image.worker.pullPolicy }}
+          env:
+            - name: REDIS_HOST
+              value: "{{ .Release.Name }}-redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: PG_HOST
+              value: "{{ .Release.Name }}-postgres"
+            - name: PG_PORT
+              value: "5432"
+            - name: PG_USER
+              value: "{{ .Values.postgres.user }}"
+            - name: PG_PASSWORD
+              value: "{{ .Values.postgres.password }}"
+            - name: PG_DATABASE
+              value: "{{ .Values.postgres.database }}"
+          resources:
+            limits:
+              cpu: 250m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

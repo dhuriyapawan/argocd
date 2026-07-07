@@ -1,0 +1,17 @@
+{
+  "name": "result-service",
+  "version": "1.0.0",
+  "description": "Real-time voting results viewer using Node.js, Express, and Socket.io",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "pg": "^8.11.5",
+    "socket.io": "^4.7.5"
+  },
+  "author": "Antigravity",
+  "license": "MIT"
+}

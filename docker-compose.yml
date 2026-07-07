@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.0-alpine
+    container_name: voting-app-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - voting-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: voting-app-db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword123
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - voting-network
+
+  vote:
+    build:
+      context: ./vote
+      dockerfile: Dockerfile
+    container_name: voting-app-vote
+    ports:
+      - "5000:80"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPTION_A=Cats
+      - OPTION_B=Dogs
+    depends_on:
+      - redis
+    networks:
+      - voting-network
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: voting-app-worker
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PG_HOST=db
+      - PG_PORT=5432
+      - PG_USER=postgres
+      - PG_PASSWORD=postgrespassword123
+      - PG_DATABASE=postgres
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - voting-network
+
+  result:
+    build:
+      context: ./result
+      dockerfile: Dockerfile
+    container_name: voting-app-result
+    ports:
+      - "5001:80"
+    environment:
+      - PG_HOST=db
+      - PG_PORT=5432
+      - PG_USER=postgres
+      - PG_PASSWORD=postgrespassword123
+      - PG_DATABASE=postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - voting-network
+
+volumes:
+  db-data:
+
+networks:
+  voting-network:
+    driver: bridge
