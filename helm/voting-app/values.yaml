@@ -6,15 +6,15 @@ image:
   vote:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting/vote
     pullPolicy: IfNotPresent
-    tag: "47d9921e915b1c8ab0fad163a38482f458efe1b4"
+    tag: "57e2554c6287c2bad7d4e73ae3d6bd02d4081ff9"
   worker:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting/worker
     pullPolicy: IfNotPresent
-    tag: "47d9921e915b1c8ab0fad163a38482f458efe1b4"
+    tag: "57e2554c6287c2bad7d4e73ae3d6bd02d4081ff9"
   result:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting/result
     pullPolicy: IfNotPresent
-    tag: "47d9921e915b1c8ab0fad163a38482f458efe1b4"
+    tag: "57e2554c6287c2bad7d4e73ae3d6bd02d4081ff9"
   redis:
     repository: redis
     tag: "7.0-alpine"
