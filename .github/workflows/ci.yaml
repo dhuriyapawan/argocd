@@ -23,7 +23,7 @@ jobs:
     name: Build & Push to ECR
     runs-on: ubuntu-latest
 
-    steps:
+    steps: 
       - name: Checkout Code
         uses: actions/checkout@v4
 
