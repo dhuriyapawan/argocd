@@ -2,22 +2,27 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: 
-            - main
-      # - devops_FeatureB     
+    branches:
+      - main
+      - dev
     paths:
-      - 'cloud-voting-platform/vote/**'
-      - 'cloud-voting-platform/worker/**'
-      - 'cloud-voting-platform/result/**'
-      - 'cloud-voting-platform/database/**'
-      - 'cloud-voting-platform/helm/**'
+      - 'vote/**'
+      - 'worker/**'
+      - 'result/**' 
+      - 'database/**'
+      - 'helm/**'
+      - '.github/workflows/ci.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting # Replace with your ECR Registry URI
-  VOTE_REPO: voting-app-vote
-  WORKER_REPO: voting-app-worker
-  RESULT_REPO: voting-app-result
+  ECR_REGISTRY: 878445923420.dkr.ecr.us-east-1.amazonaws.com
+  VOTE_REPO: cloud-voting
+  WORKER_REPO: worker
+  RESULT_REPO: result
 
 jobs:
   build-and-push:
@@ -25,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-      - name: Checkout Code
+      - name: Checkout Code 
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
@@ -42,11 +47,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Ensure ECR repositories exist
+        run: |
+          aws ecr describe-repositories --repository-names "${{ env.VOTE_REPO }}" --region "${{ env.AWS_REGION }}" >/dev/null 2>&1 || aws ecr create-repository --repository-name "${{ env.VOTE_REPO }}" --region "${{ env.AWS_REGION }}" >/dev/null
+          aws ecr describe-repositories --repository-names "${{ env.WORKER_REPO }}" --region "${{ env.AWS_REGION }}" >/dev/null 2>&1 || aws ecr create-repository --repository-name "${{ env.WORKER_REPO }}" --region "${{ env.AWS_REGION }}" >/dev/null
+          aws ecr describe-repositories --repository-names "${{ env.RESULT_REPO }}" --region "${{ env.AWS_REGION }}" >/dev/null 2>&1 || aws ecr create-repository --repository-name "${{ env.RESULT_REPO }}" --region "${{ env.AWS_REGION }}" >/dev/null
+
       - name: Build and Push Vote Service
         uses: docker/build-push-action@v5
         with:
-          context: ./cloud-voting-platform/vote
-          file: ./cloud-voting-platform/vote/Dockerfile
+          context: ./vote
+          file: ./vote/Dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.VOTE_REPO }}:${{ github.sha }}
@@ -57,8 +68,8 @@ jobs:
       - name: Build and Push Worker Service
         uses: docker/build-push-action@v5
         with:
-          context: ./cloud-voting-platform/worker
-          file: ./cloud-voting-platform/worker/Dockerfile
+          context: ./worker
+          file: ./worker/Dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.WORKER_REPO }}:${{ github.sha }}
@@ -69,8 +80,8 @@ jobs:
       - name: Build and Push Result Service
         uses: docker/build-push-action@v5
         with:
-          context: ./cloud-voting-platform/result
-          file: ./cloud-voting-platform/result/Dockerfile
+          context: ./result
+          file: ./result/Dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.RESULT_REPO }}:${{ github.sha }}
@@ -80,13 +91,13 @@ jobs:
 
       - name: Update Helm Image Tags
         run: |
-          cd cloud-voting-platform/helm/voting-app
+          cd helm/voting-app
           
           # Install yq tool if not present
           if ! command -v yq &> /dev/null; then
             sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
             sudo chmod +x /usr/bin/yq
-          fi
+          fi   
 
           # Update the tags in values.yaml
           yq -i ".image.vote.tag = \"${{ github.sha }}\"" values.yaml
@@ -97,6 +108,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add cloud-voting-platform/helm/voting-app/values.yaml
+          git add helm/voting-app/values.yaml
           git commit -m "chore(gitops): update image tags to ${{ github.sha }} [skip ci]"
           git push
