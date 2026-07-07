@@ -11,9 +11,11 @@ spec:
       app: vote
   template:
     metadata:
-      labels:
+      labels: 
         app: vote
     spec:
+      imagePullSecrets:
+        - name: ecr-secret
       containers:
         - name: vote
           image: "{{ .Values.image.vote.repository }}:{{ .Values.image.vote.tag }}"
