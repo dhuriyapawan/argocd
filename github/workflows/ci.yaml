@@ -3,8 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
-      - devops-featureA
+      # - main
+      - devops_FeatureB     
     paths:
       - 'cloud-voting-platform/vote/**'
       - 'cloud-voting-platform/worker/**'
