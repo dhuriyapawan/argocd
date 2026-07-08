@@ -1,50 +1,64 @@
 replicaCount: 1
+
 image:
   vote:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote
-    tag: e5cbaeed430a20675e34ff43e4be0b36a89dfa54
+    tag: 46a8169520f742d2662d70cc127ade1e06100ea4
     pullPolicy: Always
+
   result:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result
-    tag: e5cbaeed430a20675e34ff43e4be0b36a89dfa54
+    tag: 46a8169520f742d2662d70cc127ade1e06100ea4
     pullPolicy: Always
+
   worker:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker
-    tag: e5cbaeed430a20675e34ff43e4be0b36a89dfa54
+    tag: 46a8169520f742d2662d70cc127ade1e06100ea4
     pullPolicy: Always
+
   redis:
     repository: redis
     tag: "7.2"
     pullPolicy: IfNotPresent
+
   postgres:
     repository: postgres
     tag: "16"
     pullPolicy: IfNotPresent
+
 service:
   vote:
     type: ClusterIP
     port: 80
+
   result:
     type: ClusterIP
     port: 80
+
   redis:
     type: ClusterIP
     port: 6379
+
   postgres:
     type: ClusterIP
     port: 5432
+
 postgres:
   database: votingdb
   username: postgres
   password: postgres
+
   persistence:
     enabled: true
     size: 5Gi
+
 ingress:
   enabled: true
   className: nginx
+
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+
   hosts:
     - host: voting.local
       paths:
@@ -52,8 +66,10 @@ ingress:
           pathType: Prefix
           backendService: vote
           backendPort: 80
+
         - path: /result
           pathType: Prefix
           backendService: result
           backendPort: 80
+
   tls: []
