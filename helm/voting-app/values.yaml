@@ -1,16 +1,16 @@
 replicaCount: 1
 image:
   vote:
-    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/vote
-    tag: 5051109f847ec84209dc34731caf25907ade4dc8
+    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote
+    tag: ae5d847f279627149bd5dbcfcfeea57becd588c0
     pullPolicy: Always
   result:
-    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/result
-    tag: 5051109f847ec84209dc34731caf25907ade4dc8
+    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result
+    tag: ae5d847f279627149bd5dbcfcfeea57becd588c0
     pullPolicy: Always
   worker:
-    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/worker
-    tag: 5051109f847ec84209dc34731caf25907ade4dc8
+    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker
+    tag: ae5d847f279627149bd5dbcfcfeea57becd588c0
     pullPolicy: Always
   redis:
     repository: redis
@@ -27,6 +27,12 @@ service:
   result:
     type: ClusterIP
     port: 80
+  redis:
+    type: ClusterIP
+    port: 6379
+  postgres:
+    type: ClusterIP
+    port: 5432
 ingress:
   enabled: true
   className: nginx
@@ -44,10 +50,3 @@ ingress:
           backendService: result
           backendPort: 80
   tls: []
-image:
-  vote:
-    tag: c7704bcf1e579d437a2c509e2f7a8aabb0fb111b
-  worker:
-    tag: c7704bcf1e579d437a2c509e2f7a8aabb0fb111b
-  result:
-    tag: c7704bcf1e579d437a2c509e2f7a8aabb0fb111b
