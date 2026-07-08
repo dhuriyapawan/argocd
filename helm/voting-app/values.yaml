@@ -2,15 +2,15 @@ replicaCount: 1
 image:
   vote:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote
-    tag: 357429144dc63678d1987d29d8a991e6821e1f04
+    tag: 52bbafc9054b783a8f9c0db9ffd9b3487e1553ba
     pullPolicy: Always
   result:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result
-    tag: 357429144dc63678d1987d29d8a991e6821e1f04
+    tag: 52bbafc9054b783a8f9c0db9ffd9b3487e1553ba
     pullPolicy: Always
   worker:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker
-    tag: 357429144dc63678d1987d29d8a991e6821e1f04
+    tag: 52bbafc9054b783a8f9c0db9ffd9b3487e1553ba
     pullPolicy: Always
   redis:
     repository: redis
