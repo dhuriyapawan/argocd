@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      # - main
       - dev
     paths: 
       - 'vote/**'
@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write 
 
 env:
   AWS_REGION: us-east-1
