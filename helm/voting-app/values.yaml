@@ -22,3 +22,10 @@ ingress:
           backendService: result
           backendPort: 80
   tls: []
+image:
+  vote:
+    tag: 456ea61da12954a75c4769a2b6c969a329723756
+  worker:
+    tag: 456ea61da12954a75c4769a2b6c969a329723756
+  result:
+    tag: 456ea61da12954a75c4769a2b6c969a329723756
