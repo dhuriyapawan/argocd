@@ -1,10 +1,8 @@
 ingress:
   enabled: true
   className: nginx
-
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-
   hosts:
     - host: voting.local
       paths:
@@ -12,10 +10,15 @@ ingress:
           pathType: Prefix
           backendService: vote
           backendPort: 80
-
         - path: /result
           pathType: Prefix
           backendService: result
           backendPort: 80
-
   tls: []
+image:
+  vote:
+    tag: 34a73255a3d776730b08594a79fd9487ba643e4c
+  worker:
+    tag: 34a73255a3d776730b08594a79fd9487ba643e4c
+  result:
+    tag: 34a73255a3d776730b08594a79fd9487ba643e4c
