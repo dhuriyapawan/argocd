@@ -40,17 +40,13 @@ service:
     port: 6379
 
   postgres:
-  image:
-    repository: postgres
-    tag: "16"
-    pullPolicy: IfNotPresent
+    type: ClusterIP
+    port: 5432
 
+postgres:
   database: votingdb
   username: postgres
   password: postgres
-
-  service:
-    port: 5432
 
   persistence:
     enabled: true
