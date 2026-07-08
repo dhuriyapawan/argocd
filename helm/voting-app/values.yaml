@@ -2,17 +2,17 @@ replicaCount: 1
 
 image:
   vote:
-    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/vote
+    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote
     tag: latest
     pullPolicy: Always
 
   result:
-    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/result
+    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result
     tag: latest
     pullPolicy: Always
 
   worker:
-    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/worker
+    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker
     tag: latest
     pullPolicy: Always
 

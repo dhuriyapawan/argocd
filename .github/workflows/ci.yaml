@@ -10,7 +10,7 @@ on:
       - 'worker/**'
       - 'result/**'  
       - 'database/**' 
-      - 'helm/**'
+      - 'helm/**' 
       - '.github/workflows/ci.yaml'
   workflow_dispatch:
 
