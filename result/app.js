@@ -8,79 +8,102 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const port = process.env.PORT || 80;
+const PORT = process.env.PORT || 80;
 
-// Setup PostgreSQL client connection pool
-const pgHost = process.env.PG_HOST || 'db';
-const pgPort = process.env.PG_PORT || 5432;
-const pgUser = process.env.PG_USER || 'postgres';
-const pgPassword = process.env.PG_PASSWORD || 'postgres';
-const pgDatabase = process.env.PG_DATABASE || 'postgres';
-
+// PostgreSQL Configuration
 const pool = new Pool({
-  host: pgHost,
-  port: pgPort,
-  user: pgUser,
-  password: pgPassword,
-  database: pgDatabase,
+  host: process.env.PG_HOST || 'voting-app-postgres',
+  port: process.env.PG_PORT || 5432,
+  user: process.env.PG_USER || 'postgres',
+  password: process.env.PG_PASSWORD || 'postgres',
+  database: process.env.PG_DATABASE || 'votingdb',
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
 });
 
-// Retry Postgres connection until successful
-function checkPgConnection() {
-  pool.query('SELECT NOW()', (err, res) => {
-    if (err) {
-      console.error('Error connecting to PostgreSQL, retrying in 2 seconds...', err.message);
-      setTimeout(checkPgConnection, 2000);
-    } else {
-      console.log('Successfully connected to PostgreSQL at ' + pgHost + ':' + pgPort);
-      startPolling();
-    }
-  });
-}
-
-checkPgConnection();
-
-// Serves the static index.html from views folder
 app.use(express.static(path.join(__dirname, 'views')));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
-// Poll the database for vote counts and emit via socket.io
+// Get vote counts from PostgreSQL
+async function getVoteCounts() {
+  const votes = {
+    a: 0,
+    b: 0,
+  };
+
+  try {
+    const result = await pool.query(
+      `SELECT vote, COUNT(*) AS count
+       FROM votes
+       GROUP BY vote`
+    );
+
+    result.rows.forEach((row) => {
+      votes[row.vote] = parseInt(row.count, 10);
+    });
+
+    return votes;
+  } catch (err) {
+    console.error("Database query failed:", err.message);
+    return votes;
+  }
+}
+
+// Check PostgreSQL Connection
+async function checkDatabase() {
+  try {
+    await pool.query("SELECT NOW()");
+    console.log(
+      `Successfully connected to PostgreSQL at ${process.env.PG_HOST || 'voting-app-postgres'}:${process.env.PG_PORT || 5432}`
+    );
+
+    startPolling();
+
+  } catch (err) {
+    console.error("Unable to connect to PostgreSQL:", err.message);
+    setTimeout(checkDatabase, 2000);
+  }
+}
+
+let pollingStarted = false;
+
 function startPolling() {
+  if (pollingStarted) return;
+
+  pollingStarted = true;
+
   setInterval(async () => {
-    try {
-      const queryResult = await pool.query('SELECT vote, COUNT(id) AS count FROM votes GROUP BY vote');
-      const votes = { a: 0, b: 0 };
-      
-      queryResult.rows.forEach((row) => {
-        if (row.vote === 'a') votes.a = parseInt(row.count, 10);
-        if (row.vote === 'b') votes.b = parseInt(row.count, 10);
-      });
-      
-      io.emit('scores', votes);
-    } catch (err) {
-      console.error('Error querying votes table: ', err.message);
-    }
+    const votes = await getVoteCounts();
+
+    console.log("Current Votes:", votes);
+
+    io.emit("scores", votes);
+
   }, 1000);
 }
 
-// Socket.io connection logging
-io.on('connection', (socket) => {
-  console.log(`New client connected: ${socket.id}`);
-  
-  // Send initial 0-0 score or empty score right away
-  socket.emit('scores', { a: 0, b: 0 });
+// Socket.IO
+io.on("connection", async (socket) => {
 
-  socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
+  console.log(`Client Connected: ${socket.id}`);
+
+  // Send current database values immediately
+  const votes = await getVoteCounts();
+
+  socket.emit("scores", votes);
+
+  socket.on("disconnect", () => {
+    console.log(`Client Disconnected: ${socket.id}`);
   });
+
 });
 
-server.listen(port, () => {
-  console.log(`Result service listening on port ${port}`);
+checkDatabase();
+
+server.listen(PORT, () => {
+  console.log(`Result service listening on port ${PORT}`);
 });
