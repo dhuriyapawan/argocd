@@ -7,9 +7,10 @@ metadata:
 data:
   init.sql: |
     CREATE TABLE IF NOT EXISTS votes (
-        id VARCHAR(255) PRIMARY KEY,
-        vote VARCHAR(255) NOT NULL
+      id VARCHAR(255) PRIMARY KEY,
+      vote VARCHAR(255) NOT NULL
     );
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -30,34 +31,45 @@ spec:
       containers:
         - name: postgres
           image: "{{ .Values.image.postgres.repository }}:{{ .Values.image.postgres.tag }}"
+          imagePullPolicy: {{ .Values.image.postgres.pullPolicy }}
+
           env:
             - name: POSTGRES_DB
-              value: "{{ .Values.postgres.database }}"
+              value: {{ .Values.postgres.database | quote }}
+
             - name: POSTGRES_USER
-              value: "{{ .Values.postgres.user }}"
+              value: {{ .Values.postgres.username | quote }}
+
             - name: POSTGRES_PASSWORD
-              value: "{{ .Values.postgres.password }}"
+              value: {{ .Values.postgres.password | quote }}
+
           ports:
             - containerPort: 5432
               name: postgres
+
           volumeMounts:
-            - name: db-data
+            - name: postgres-data
               mountPath: /var/lib/postgresql/data
+
             - name: init-sql
               mountPath: /docker-entrypoint-initdb.d
+
           resources:
-            limits:
-              cpu: 250m
-              memory: 256Mi
             requests:
               cpu: 100m
               memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+
       volumes:
-        - name: db-data
+        - name: postgres-data
           emptyDir: {}
+
         - name: init-sql
           configMap:
             name: {{ .Release.Name }}-postgres-init-sql
+
 ---
 apiVersion: v1
 kind: Service
@@ -66,8 +78,11 @@ metadata:
   labels:
     app: postgres
 spec:
+  type: {{ .Values.service.postgres.type }}
   ports:
-    - port: 5432
+    - port: {{ .Values.service.postgres.port }}
       targetPort: 5432
+      protocol: TCP
+      name: postgres
   selector:
     app: postgres

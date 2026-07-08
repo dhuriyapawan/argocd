@@ -2,15 +2,15 @@ replicaCount: 1
 image:
   vote:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote
-    tag: 46a8169520f742d2662d70cc127ade1e06100ea4
+    tag: 64fe93a1de0b28302b4ad2e97fdf4450dbb963a9
     pullPolicy: Always
   result:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result
-    tag: 46a8169520f742d2662d70cc127ade1e06100ea4
+    tag: 64fe93a1de0b28302b4ad2e97fdf4450dbb963a9
     pullPolicy: Always
   worker:
     repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker
-    tag: 46a8169520f742d2662d70cc127ade1e06100ea4
+    tag: 64fe93a1de0b28302b4ad2e97fdf4450dbb963a9
     pullPolicy: Always
   redis:
     repository: redis
@@ -31,15 +31,12 @@ service:
     type: ClusterIP
     port: 6379
   postgres:
-  image:
-    repository: postgres
-    tag: "16"
-    pullPolicy: IfNotPresent
+    type: ClusterIP
+    port: 5432
+postgres:
   database: votingdb
   username: postgres
   password: postgres
-  service:
-    port: 5432
   persistence:
     enabled: true
     size: 5Gi
