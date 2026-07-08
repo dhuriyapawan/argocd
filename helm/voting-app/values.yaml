@@ -1,64 +1,24 @@
-# Default values for voting-app.
-# This is a YAML-formatted file.
-
-replicaCount: 1
-image:
-  vote:
-    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote
-    pullPolicy: IfNotPresent
-    tag: "0a4837723604a99740d261ba3a1220a2ec7c8534"
-  worker:
-    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker
-    pullPolicy: IfNotPresent
-    tag: "0a4837723604a99740d261ba3a1220a2ec7c8534"
-  result:
-    repository: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result
-    pullPolicy: IfNotPresent
-    tag: "0a4837723604a99740d261ba3a1220a2ec7c8534"
-  redis:
-    repository: redis
-    tag: "7.0-alpine"
-  postgres:
-    repository: postgres
-    tag: "16-alpine"
-service:
-  vote:
-    type: ClusterIP
-    port: 80
-  result:
-    type: ClusterIP
-    port: 80
-  redis:
-    type: ClusterIP
-    port: 6379
-  postgres:
-    type: ClusterIP
-    port: 5432
-postgres:
-  db: db
-  user: postgres
-  password: postgrespassword123
-  database: postgres
 ingress:
   enabled: true
-  className: "nginx"
-  annotations: {}
-  # kubernetes.io/ingress.class: nginx
-  # kubernetes.io/tls-acme: "true"
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
   hosts:
-    - host: vote.local
+    - host: voting.local
       paths:
         - path: /
           pathType: Prefix
           backendService: vote
           backendPort: 80
-    - host: result.local
-      paths:
-        - path: /
+        - path: /result
           pathType: Prefix
           backendService: result
           backendPort: 80
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+image:
+  vote:
+    tag: 34a73255a3d776730b08594a79fd9487ba643e4c
+  worker:
+    tag: 34a73255a3d776730b08594a79fd9487ba643e4c
+  result:
+    tag: 34a73255a3d776730b08594a79fd9487ba643e4c
