@@ -1,3 +1,25 @@
+replicaCount: 1
+image:
+  vote:
+    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/vote
+    tag: 5051109f847ec84209dc34731caf25907ade4dc8
+    pullPolicy: Always
+  result:
+    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/result
+    tag: 5051109f847ec84209dc34731caf25907ade4dc8
+    pullPolicy: Always
+  worker:
+    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/worker
+    tag: 5051109f847ec84209dc34731caf25907ade4dc8
+    pullPolicy: Always
+  redis:
+    repository: redis
+    tag: "7.2"
+    pullPolicy: IfNotPresent
+  postgres:
+    repository: postgres
+    tag: "16"
+    pullPolicy: IfNotPresent
 service:
   vote:
     type: ClusterIP

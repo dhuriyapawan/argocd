@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write 
+  contents: write  
 
 env:
   AWS_REGION: us-east-1
