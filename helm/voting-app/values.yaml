@@ -1,3 +1,10 @@
+service:
+  vote:
+    type: ClusterIP
+    port: 80
+  result:
+    type: ClusterIP
+    port: 80
 ingress:
   enabled: true
   className: nginx
@@ -15,10 +22,3 @@ ingress:
           backendService: result
           backendPort: 80
   tls: []
-image:
-  vote:
-    tag: 83377453f73aea002b3ceb2cfb60c02473d8bede
-  worker:
-    tag: 83377453f73aea002b3ceb2cfb60c02473d8bede
-  result:
-    tag: 83377453f73aea002b3ceb2cfb60c02473d8bede
