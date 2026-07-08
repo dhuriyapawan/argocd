@@ -1,3 +1,31 @@
+replicaCount: 1
+
+image:
+  vote:
+    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/vote
+    tag: latest
+    pullPolicy: Always
+
+  result:
+    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/result
+    tag: latest
+    pullPolicy: Always
+
+  worker:
+    repository: <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/worker
+    tag: latest
+    pullPolicy: Always
+
+  redis:
+    repository: redis
+    tag: "7.2"
+    pullPolicy: IfNotPresent
+
+  postgres:
+    repository: postgres
+    tag: "16"
+    pullPolicy: IfNotPresent
+
 service:
   vote:
     type: ClusterIP
@@ -6,6 +34,14 @@ service:
   result:
     type: ClusterIP
     port: 80
+
+  redis:
+    type: ClusterIP
+    port: 6379
+
+  postgres:
+    type: ClusterIP
+    port: 5432
 
 ingress:
   enabled: true
