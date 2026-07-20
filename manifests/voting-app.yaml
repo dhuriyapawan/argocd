@@ -128,7 +128,7 @@ spec:
     spec:
       containers:
         - name: vote
-          image: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting/vote:latest
+          image: 878445923420.dkr.ecr.us-east-1.amazonaws.com/vote:latest
           ports:
             - containerPort: 80
               name: http
@@ -174,7 +174,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting/worker:latest
+          image: 878445923420.dkr.ecr.us-east-1.amazonaws.com/worker:latest
           env:
             - name: REDIS_HOST
               value: redis
@@ -211,7 +211,7 @@ spec:
     spec:
       containers:
         - name: result
-          image: 878445923420.dkr.ecr.us-east-1.amazonaws.com/cloud-voting/result:latest
+          image: 878445923420.dkr.ecr.us-east-1.amazonaws.com/result:latest
           ports:
             - containerPort: 80
               name: http

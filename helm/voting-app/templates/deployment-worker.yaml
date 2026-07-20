@@ -14,6 +14,8 @@ spec:
       labels:
         app: worker
     spec:
+      imagePullSecrets:
+        - name: ecr-secret
       containers:
         - name: worker
           image: "{{ .Values.image.worker.repository }}:{{ .Values.image.worker.tag }}"
@@ -28,7 +30,7 @@ spec:
             - name: PG_PORT
               value: "5432"
             - name: PG_USER
-              value: "{{ .Values.postgres.user }}"
+              value: "{{ .Values.postgres.username }}"
             - name: PG_PASSWORD
               value: "{{ .Values.postgres.password }}"
             - name: PG_DATABASE
